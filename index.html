@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        #canvas{
+            margin:20px 200px;
+        }
+        img{
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+<div id="maindiv">
+    <canvas id="canvas" width="400px" height="600px"></canvas>
+</div>
+</body>
+<script type="text/javascript">
+    var mainDiv =document.getElementById("maindiv");
+    var canvas = document.getElementById("canvas");
+    var context = canvas.getContext("2d");
+    var timer;
+    var timer2;
+    var score = 0;
+    var blocks = [];
+    var downs = [];
+    var bg = new background(0,0,400,600,"image/pic.png");
+
+
+    //背景
+    function background(x,y,width,height,imgsrc){
+        this.bgx = x;
+        this.bgy = y;
+        this.bgwidth = width;
+        this.bgheight = height;
+        var img = new Image();
+        img.src = imgsrc;
+        this.img = img;
+        this.draw = function(){
+            context.drawImage(this.img,0,0,482,800,this.bgx,this.bgy,this.bgwidth,this.bgheight)
+        }
+    }
+
+    //发射方块
+    function downblock(x,y,width,height,imgsrc){
+        this.dbx = x;
+        this.dby = y;
+        this.dbwidth = width;
+        this.dbheight = height;
+        var img = new Image();
+        img.src = imgsrc;
+        this.img = img;
+        this.draw = function(){
+            context.drawImage(this.img,230,800,115,150,this.dbx,this.dby,this.dbwidth,this.dbheight)
+        }
+    }
+
+    //移动方块
+    function block(x,y,imgsrc){
+        this.mbx = x;
+        this.mby = y;
+        this.blockImageNode = null;
+        this.blockImageNodeSrc = imgsrc;
+
+        this.init=function(){
+            this.blockImageNode=document.createElement("img");
+            this.blockImageNode.style.left= this.mbx+this.blockImageNode.offsetLeft+200+"px";
+            this.blockImageNode.style.top= this.mby+this.blockImageNode.offsetTop-20+"px";
+            this.blockImageNode.src= this.blockImageNodeSrc;
+            mainDiv.appendChild(this.blockImageNode);
+        };
+        this.init();
+
+        //创建移动
+        this.blockmove = function(){
+            this.blockImageNode.style.top=this.blockImageNode.offsetTop+40+"px";
+        };
+        this.downblockmove = function(){
+            this.blockImageNode.style.top=this.blockImageNode.offsetTop-40+"px";
+        };
+    }
+    //开始游戏
+   function game() {
+       bg.draw();
+
+       //创建砖块
+        var b = Math.floor(Math.random() * 4);
+       for (var j = 0; j < 4; j++) {
+           if (j != b) {
+               blocks.push(new block(100 * j, 0, "image/block.png"));
+           }
+       }
+       //向下移动至底部停止计时器
+       for (var i = 0; i < blocks.length; i++) {
+           blocks[i].blockmove();
+           if (blocks[i].blockImageNode.offsetTop > 440) {
+               clearInterval(timer);
+           }
+       }
+       for (var i = 0; i < 4; i++) {
+           var a = new downblock(100 * i, 480, 99, 120, "image/pic.png");
+           a.draw();
+       }
+
+   }
+
+
+        //创建底部图片
+       function game2() {
+       //点击发射
+       canvas.onmousedown = function(e){
+           var cli = e.offsetX;
+           cli = cli - cli%100;
+           downs.push(new block(Math.floor(cli),480,"image/block.png"));
+           window.cli = cli;
+       };
+       //向上移动
+       for (var j = 0; j < downs.length; j++) {
+           downs[j].downblockmove();
+
+       }
+
+       //相遇删除节点
+       for(var k = 0; k < downs.length; k++){
+           if(downs[k].blockImageNode.offsetTop==blocks[k].blockImageNode.offsetTop){
+               mainDiv.removeChild(downs[k].blockImageNode);
+               downs.splice(k,1);
+               mainDiv.removeChild(blocks[k].blockImageNode);
+               blocks.splice(k,3);
+               score++;
+                //分数
+               console.log(score);
+               context.strokeStyle = 'white';
+               context.font = '30px 黑体';
+               context.strokeText(score,400,100);
+           }
+
+       }
+    }
+
+    game();
+    timer = setInterval(game, 1000);
+    game2();
+    timer2 = setInterval(game2, 100);
+
+
+</script>
+</html>
